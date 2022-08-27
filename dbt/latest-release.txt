@@ -1,6 +1,6 @@
-2.0|enforce
+1.0
 Added
-<div>New levels </div>
+<div>New features </div>
 <div style="margin-top: 0px;"><a style="margin: 0 auto; max-width: 150px;" class="d-none btn btn-sm btn-info" href="https://myschoolreporte.com.ng/nitty-gritty">Update Now</a></div>
 <!--palmstore|http://palmplaystore.com/app/soft_detail?itemID=s_5c6e4a6d22ad42de87b6dd25dd997cb3}
 whatsapp|https://wa.me/2348181317050?text=Send%20me%20update}-->
