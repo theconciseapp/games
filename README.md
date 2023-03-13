@@ -13,6 +13,44 @@
 
 <a href="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/DBET%20FUN%20VFL.apk">Download</a>
 
+Screenshots 👇
+
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/1.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/2.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/3.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/4.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/5.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/6.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/7.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/8.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/9.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/10.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/11.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/12.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/13.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/14.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/15.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/16.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/screenshots/17.png" alt="">
+<br>
+
+
 *** THE NITTY-GRITTY - This quiz game is for secondary school students most especially those who want to write
 W.A.E.C (West African Examination Council)
 
