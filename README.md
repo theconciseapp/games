@@ -12,3 +12,11 @@
 - Totally offline game
 
 <a href="https://raw.githubusercontent.com/theconciseapp/games/main/dbt/DBET%20FUN%20VFL.apk">Download</a>
+
+*** THE NITTY-GRITTY - This quiz game is for secondary school students most especially those who want to write
+W.A.E.C (West African Examination Council)
+
+- Lifelines - 50:50, 50:50x, Call a friend, correct answer
+- Study mode
+
+<a href="https://raw.githubusercontent.com/theconciseapp/games/main/nitty-gritty/The%20Nitty%20Gritty%203.5.apk">Download</a>
