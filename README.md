@@ -20,3 +20,25 @@ W.A.E.C (West African Examination Council)
 - Study mode
 
 <a href="https://raw.githubusercontent.com/theconciseapp/games/main/nitty-gritty/The%20Nitty%20Gritty%203.5.apk">Download</a>
+
+Screenshots 👇
+
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/nitty-gritty/screenshots/1.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/nitty-gritty/screenshots/2.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/nitty-gritty/screenshots/3.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/nitty-gritty/screenshots/4.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/nitty-gritty/screenshots/5.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/nitty-gritty/screenshots/6.png" alt="">
+<br>
+<img src="https://raw.githubusercontent.com/theconciseapp/games/main/nitty-gritty/screenshots/7.png" alt="">
+<br>
+
+
+
+
+
