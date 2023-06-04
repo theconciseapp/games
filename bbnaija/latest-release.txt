@@ -1,4 +1,4 @@
-2.0
+1.3
 Added
 <div>New levels </div>
 <div style="margin-top: 0px;"><a style="margin: 0 auto; max-width: 150px;" class="d-none btn btn-sm btn-info" href="https://theconciseapp.github.io/games/bbnaija/big-bible-naija.apk">Update Now</a></div>
