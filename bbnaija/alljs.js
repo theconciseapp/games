@@ -1,5 +1,5 @@
 'use strict';
-//Ver: 12.0
+//Ver: 1.0
 function yall (options) {
   options = options || {};
 
@@ -724,7 +724,7 @@ function checkVerified(data, name){
      obj.icon='';
 
  if( data && userVerified( data) ){
-    obj.icon='<img class="pointer-events-none verified-icon" src="' + __THEME_PATH__ + '/assets/verified-icons/' + data + 'icon.png" alt="">';
+    obj.icon='<img class="pointer-events-none verified-icon" src="' + __VCDN__ + '/' + data + 'icon.png" alt="">';
  }
     
  return obj;
@@ -757,9 +757,14 @@ function isGroupPage( gpin){
 
 function goPage( fuser){
   var str=strtolower( fuser).substring(0,3);
- return $.inArray( str, ["pv_","cv_","sv_"] )>-1;
-
+ return $.inArray( str, ["pv_","cv_","sv_","xv_"] )>-1;
 }
+
+function advertPage( fuser){
+  var str=strtolower( fuser).substring(0,3);
+ return str=="xv_"?true:false;
+}
+
 
 function goStaticPage( fuser){
 var str=strtolower( fuser).substring(0,3);
@@ -1741,8 +1746,6 @@ string=string.replace(/(https?):\/\/[^"\]]*?(?=<|\s|\*|$)(?=<|\s|\*|$)/gi, funct
     return lid;
  });
 // (https?):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.]*[-A-Z0-9+@#\/%=~_|&;]
- 
-
 
  $.each( htmlFormat,function(i,v){  
   var symbol=v.symbol;
@@ -1816,12 +1819,11 @@ return text.replace(/<strong>(.*?)<\/strong>/g,'*$1*')
 
 function go_textFormatter(text){
   text= parsemd__(text);
-  
   text=text
 //.replace(/(?<=\s|^)@([\w_-]+)(?=\s|^)/gi, '<span class="post-chat-user" data-fuser="$1">$1</span>')
      .replace(/\[follow=(.*?)\](.*?)\[\/follow\]/g,'<span class="go-follow-btn go-post-follow-btn" data-fuid="$1">$2</span>')
      .replace(/\[\[([\w_-]+):(.*?)\]\]/gi, '<span class="fa fa-lg fa-$1 ext-social-button" data-site="$1" data-account="$2"> $2</span>')
-     .replace(/\[img=(.*?)\](.*?)\[\/img\]/g, '<img class="go-post-image go-post-photo" src="$1" alt="$2">')
+     .replace(/\[img=(.*?)\](.*?)\[\/img\]/g, '<img class="go-post-image go-post-photo" src="$1" alt="$2" onerror="go_postImgError(this);">')
      .replace(/\[link=(.+)\](.+\S)\[\/link\]/g,'<div class="go-nice-link-container"><span class="go-nice-link" href="$1">$2</span></div>')
     .replace(/(?<=\s|^)@([a-z0-9_]+)(?=<|\s|$)/gi, '<uzer>@$1</uzer>')
    .replace(/(fa fa-(.+) fae)/gi, '<i class="$1"></i>')
@@ -2406,16 +2408,19 @@ function goOpenGallery(event,type){
 var allow_upload=SERVER_SETTINGS.file_upload||"NO";
 var allow_video=SERVER_SETTINGS.post_video||"NO";
 var allow_image=SERVER_SETTINGS.post_image||"NO";
+var max_files=SERVER_SETTINGS.max_total_upload||1;
+var max_size=SERVER_SETTINGS.max_upload_size||1; //MB
 
 if(  siteAdmin( USERNAME) ){
    allow_image_=true;
    allow_video_ =true;
   }
-   else if( allow_upload=="YES" ){
-    if( allow_video=="YES" ){
+  else if( allow_upload=="YES" ){
+
+   if( allow_video=="YES" ){
    	allow_video_=true;
     }    
-  if(  allow_image =="YES"){
+  if(  allow_image =="YES" ||userVerified( VERIFIED) ){
    allow_image_=true; 
    }
  } 
@@ -2441,14 +2446,25 @@ try{
 	
 	var imageTypes = ["jpg", "jpeg", "gif","png"];
    var videoTypes=["mp4"]; 
-
-for(let i=0;i<event.files.length;++i){
+   
+ var total_files=event.files.length;
+ 
+ if( !siteAdmin( USERNAME) && total_files>max_files){
+ 	total_files=max_files;
+ }
+ 
+for(let i=0;i<total_files;++i){
 	var ext= event.files[i].name.split('.').pop().toLowerCase();  //file extension from input file
+	var fsize=event.files[i].size;
+
+ if(!fsize)  continue;
+   fsize= (fsize/(1024*1024)).toFixed(2);
+	if( !siteAdmin( USERNAME) && fsize>max_size) continue;
+	
     var reader = new FileReader();
-    
     reader.onload = function(e){
     var data=	this.result; 
-      var type=data.match(/(video|image)/);
+    var type=data.match(/(video|image)/);
  
   if( !type ) return toast("One or more file unsupported");
   
@@ -2474,7 +2490,6 @@ $('#open-compose-page-btn').click();
  }
 
 function image_( i, image_data){
-	
 	resizeImage( image_data, {quality: 0.8, width: 1000, height: 600 }, function( v, error){
  if( error) return toast( error);
  
@@ -2483,7 +2498,7 @@ function image_( i, image_data){
 	var fpath=filename + ".jpg"; 
 	
 	GO_UPLOAD_FILE_PATHS.push( fpath );
-	
+
 	var cont=$('#go-upload-preview-container');
   
      var data='<div id="uppc-' + cid + '" data-swid="' + i + '" onclick="swapIt(this)" data-fpath="' + fpath + '" class="go-upload-photo-preview-container">';
@@ -2560,7 +2575,7 @@ var reposted=Number( v.repost);
    var user_name=v.username;
    var avatar=v.avatar||"";
    var shared_post=v.shared_post;
-     
+    var post_status=v.post_status||0;
    var post_title=v.post_title||"";
    var post_by=user_name;
    var email=v.email;
@@ -2692,7 +2707,7 @@ var open_file=false;
        p+='</div>';
    }
       
-       p+='<div class="col go-post-fullname-' + user_id + ( sponsored && !adm?' go-sponsored-profile': ' go-open-profile') + '" data-uverified="' + uv + '" data-hide-author="' + hide_author + '" data-uid="' + user_id + '" data-user="' + post_by + '" data-user-fullname="' + fullname_ + '" data-unicename="' + unice + '">';
+       p+='<div class="col go-post-fullname-' + user_id + ( sponsored && user_id!=ID && !adm?' go-sponsored-profile': ' go-open-profile') + '" data-uverified="' + uv + '" data-hide-author="' + hide_author + '" data-uid="' + user_id + '" data-user="' + post_by + '" data-user-fullname="' + fullname_ + '" data-unicename="' + unice + '">';
    
    if( sponsored || hide_author==="NO" ){
       
@@ -2777,7 +2792,7 @@ if(  spresult){
        }
        
    p+='</div>';
-      p+='</div>';
+   p+='</div>';
 
 if( was_shared){
    p+='</div>';
@@ -2794,7 +2809,7 @@ if( was_shared){
        var rv=+rcount;
         total_r=total_r+ ( +rv);
      if( rv){
-       remoji+='<img class="go-like-post-iconx-' + post_id + ' icon-normal w-18 h-18" src="' + __THEME_PATH__ + '/assets/chat-icons/reactions/' + i + '.png">';
+       remoji+='<img class="go-like-post-iconx-' + post_id + ' icon-normal w-18 h-18" src="' + __RCDN__ + '/' + i + '.png">';
      }
       });
       
@@ -2812,12 +2827,15 @@ if( plike ){
    
  var force_login=SERVER_SETTINGS.force_user_login;
   
-  var licon=__THEME_PATH__ + '/assets/chat-icons/reactions/' + liked + '.png';
+  var licon=__RCDN__ + '/' + liked + '.png';
      
      var total_reactions= abbrNum(total_r, 1);
      var total_likes=+reactions_["like"]||0;
      
       p+='<div class="go-post-footer">';
+      if( post_status=="0"){
+      p+='<div class="text-success text-center p-2"><strong><i>Awaiting approval...</i></strong></div>';	
+      }
       p+='<div class="reactions-box-container reactions-box-container-' + post_id + '"></div>';
   
   if(allow_reactions==="YES"){
@@ -2830,7 +2848,7 @@ if( plike ){
     }
       
    if( SERVER_SETTINGS.go_allow_comment=="YES" && post_by!='cv_drafts' && commentable){
-      p+='<div class="col text-center"><button data-pid="' + post_id + '" data-post-by="' + post_by + '" data-uid="' + user_id + '" class="go-open-comments-box ripple-effect"><img class="icon-normal" src="' + __THEME_PATH__ + '/assets/go-icons/comment.png"> <span id="total-comments-' + post_id + '">' + abbrNum(total_comments,1) + '</span></button></div>';
+      p+='<div class="col text-center"><button data-pid="' + post_id + '" data-post-by="' + post_by + '" data-uid="' + user_id + '" class="go-open-comments-box ripple-effect"><img class="icon-normal" src="' + __RCDN__ + '/comment.png"> <span id="total-comments-' + post_id + '">' + abbrNum(total_comments,1) + '</span></button></div>';
    }
  
    var can_post=SERVER_SETTINGS.go_can_post||1;
@@ -2850,7 +2868,7 @@ if( plike ){
  if( ( siteAdmin(USERNAME)||  can_post_ ) && shareable ){
    
       p+='<div class="col text-center"><button  data-uid="' + user_id + '" data-pid="' + post_id + '"  data-share-pid="' +( reposted?reposted:post_id) + '" data-notify="' + ( reposted?op_uid:user_id ) + '" data-cpid="' + post_id + '" data-pbn="' + fullname_ + '" data-spbn="' + op_name_ + '" data-unicename="' + unice + '" class="go-share-post-btn ripple-effect" onclick="sharePost(this);">';
-      p+='<img class="icon-normal" src="' + __THEME_PATH__ + '/assets/go-icons/share.png"> <span id="total-shares-' + post_id + '">' + abbrNum( total_shares, 1) + '</span></button>';
+      p+='<img class="icon-normal" src="' + __RCDN__ + '/share.png"> <span id="total-shares-' + post_id + '">' + abbrNum( total_shares, 1) + '</span></button>';
       p+='</div>';  
    
    }
@@ -3388,7 +3406,12 @@ function sendPost( post_title, post, puid, unicename, post_by, fullname, post_bg
  
       connCounts++;
       localStorage.setItem(SITE_UNIQUE__ + 'go_is_sending_post','TRUE')
-      
+  
+  if( !userVerified(USERNAME)){
+ post=post.replace(/\[\/?(?:code|img|link)*?.*?\]/img,"");
+ }
+   
+  
  setTimeout( function(){
     
   $.ajax({
@@ -3422,7 +3445,7 @@ function sendPost( post_title, post, puid, unicename, post_by, fullname, post_bg
    var pid=result.id;
  //  var settings=result.settings;
 
- var data=build_post( pid, post_title, result.post_excerpt, post_files,  result.post_meta );
+ var data=build_post( pid, post_title, result.post_excerpt, post_files,  result.post_meta ,result.post_status);
 
     $('.go-no-post').remove();
  var ddata=  display_post( data) 
@@ -3648,7 +3671,7 @@ function deletePost(pid, post_by){
 }
 
 
-function build_post(pid, post_title, post_excerpt,  post_files, meta){
+function build_post(pid, post_title, post_excerpt,  post_files, meta, post_status){
 	var elem=$("#go-compose-post-data");
 	var avatar=$("#composer-icon-container").find("img").attr("src");
 
@@ -3668,6 +3691,7 @@ function build_post(pid, post_title, post_excerpt,  post_files, meta){
    obj.post_date=moment().unix();
    obj.post_files=post_files;
    obj.post_meta=meta||"";
+   obj.post_status=post_status||0;
   arr.push(obj );
    return arr;
  }
@@ -4031,19 +4055,9 @@ if( site.match(/whatsapp/i)){
  
   });
  
-/*
-const ptr = PullToRefresh.init({
-  mainElement: '#go-posts-column',
-  onRefresh() {
-    android.toast.show('fine')
-  },
-  shouldPullToRefresh(){
-  var t=$('#go-posts-column').scrollTop();
-    return !t;
-}
+$("body").on("click",".menuItemTitle", function(e){
+	e.preventDefault();
 });
-*/
-   
    
  $('#go-posts-column').on('touchstart scroll mouseover', function() {
    var scr=$(this).scrollTop() + $(this).innerHeight();
@@ -4237,11 +4251,17 @@ function progress(){
   } 
  }
   
+  try{
  if( GO_UPLOAD_FILE_PATHS.length>0 ){
    progress();
+  
     this_.prop('disabled',true);  
   return goUploadFiles();
   }
+  }catch(e){
+  	alert(e)
+  }
+  
   
   var rp=$('#go-repost-data').val();
    
@@ -5157,9 +5177,9 @@ $("body").on("click",".reacted-icons-container", function(){
     div+='<div class="row">';
     div+='<div class="col-3"><strong>' + i.toUpperCase() + '</strong></div>';
     div+='<div class="col-5 text-center">';
-    div+='<img class="w-18" src="' + __THEME_PATH__ + '/assets/chat-icons/reactions/' + i + '.png">';
-    div+='<img class="w-18" src="' + __THEME_PATH__ + '/assets/chat-icons/reactions/' + i + '.png">';
-    div+='<img class="w-18" src="' + __THEME_PATH__ + '/assets/chat-icons/reactions/' + i + '.png">';
+    div+='<img class="w-18" src="' + __RCDN__ + '/' + i + '.png">';
+    div+='<img class="w-18" src="' + __RCDN__ + '/' + i + '.png">';
+    div+='<img class="w-18" src="' + __RCDN__ + '/' + i + '.png">';
     div+='</div>';
     div+='<div class="col-4 text-center"><strong>' + abbrNum( (+count_), 1) + '</strong></div>';
     div+='</div>';
@@ -5774,8 +5794,8 @@ function toggleEditPostMeta(t){
 
 function openComposeBox(){
 	 var zi=zindex(); 
-$('#compose-post-box').focus();
- $('#compose-post-container').css({'display':'block','z-index': zi}); 
+$("#compose-post-box").focus();
+ $("#compose-post-container").css({'display':'block','z-index': zi}); 
   changeHash("")
  }
 	
@@ -5812,7 +5832,7 @@ appendComposerInfo(USERNAME, FULLNAME);
 
 
 function openPageComposePage(t){
-	
+	//Profile
   var this_=$(t);
   var zi=zindex();
    var el=$("#go-compose-post-data");
@@ -5854,7 +5874,6 @@ if( !$('#compose-post-container #go-post-by-pages').length){
  
   }
  }
-  
 }
   
  
@@ -5881,11 +5900,6 @@ function sharePost(t){
    
    var hl=share_icon;
    
-  $('#go-repost-data').attr('data-pid', pid)
-   .attr('data-spid', spid).
-   attr('data-notify', notify)
-   .val('1');
-    
  var gpElem=$('#compose-post-container .go-pages');
     
 if( siteAdmin(  USERNAME) ){
@@ -5904,6 +5918,7 @@ data+='<div class="center-text-div" style="padding: 30px 16px 30px 16px;">';
  data+='</div></div>';
 
 displayData(data, { oszindex:260, data_class: ".com-pages-div", osclose:true});
+
 	var loader=$("#go-cpage-loader");
 var elem=$("#go-compose-pages");
 
@@ -5947,10 +5962,10 @@ loader.hide();
    var unice= v.nicename;
    
 if( goStaticPage( puser) ){
-	static_page+='<div class="p-3" style="border-bottom: 1px solid #999;" data-sharer="' + user_id + '" data-uverified="' + uv + '" data-uid="' + puid + '" data-user="' + puser + '" data-fullname="' + fname + '" data-pbn="' + pbn + '" data-spbn="' + spbn + '" data-unicename="' + unice + '" onclick="openSharePostComposePage(this);">' + fname_ + ' *</div>';
+	static_page+='<div class="p-3" style="border-bottom: 1px solid #999;" data-sharer="' + user_id + '" data-uverified="' + uv + '" data-uid="' + puid + '" data-user="' + puser + '" data-fullname="' + fname + '" data-pbn="' + pbn + '" data-spbn="' + spbn + '" data-unicename="' + unice + '" data-pid="' + pid + '" data-spid="' + spid + '" data-notify="' + notify + '" onclick="openSharePostComposePage(this);">' + fname_ + ' *</div>';
 	}else{
 		
-   o+='<div class="p-3" style="border-bottom: 1px solid #999;" data-sharer="' + user_id + '" data-uverified="' + uv + '"  data-uid="' + puid + '"  data-user="' + puser + '" data-fullname="' + fname + '" data-pbn="' + pbn + '" data-spbn="' + spbn + '" data-unicename="' + unice + '" onclick="openSharePostComposePage(this);">' + fname_ + ' </div>';
+   o+='<div class="p-3" style="border-bottom: 1px solid #999;" data-sharer="' + user_id + '" data-uverified="' + uv + '"  data-uid="' + puid + '"  data-user="' + puser + '" data-fullname="' + fname + '" data-pbn="' + pbn + '" data-spbn="' + spbn + '" data-unicename="' + unice + '" data-pid="' + pid + '" data-spid="' + spid + '" data-notify="' + notify + '" onclick="openSharePostComposePage(this);">' + fname_ + ' </div>';
    }
   });
  
@@ -5970,6 +5985,12 @@ $("#repost-pages").html(o);
  }
 else{
 var fname=userData("fullname");
+
+  $('#go-repost-data').attr('data-pid', pid)
+   .attr('data-spid', spid).
+   attr('data-notify', notify)
+   .val('1');
+    
 
 el.attr("data-uid", ID)
  .attr("data-uverified", VERIFIED)
@@ -6016,12 +6037,21 @@ var fn= this_.attr("data-fullname");
 var pbn= this_.attr("data-pbn");
 var spbn= this_.attr("data-spbn");
 var unicename=this_.attr("data-unicename");
+var pid=this_.attr("data-pid");
+var spid=this_.attr("data-spid");
+var notify=this_.attr("data-notify");
+
 var sharer=this_.attr("data-sharer");
 
  if(!user_id||!user||!fn){ 	
   return toast("Missing parameters");
  }
 
+  $('#go-repost-data').attr('data-pid', pid)
+   .attr('data-spid', spid).
+   attr('data-notify', notify)
+   .val('1');
+    
   var el=$("#go-compose-post-data");
   
   el.attr("data-uid", user_id )
@@ -6119,16 +6149,16 @@ var curr_icon=curr_icon_.attr('src');
  
  if( reaction_ ==reaction){ 
   var clikes=curr_likes-1;
-  curr_icon_.attr("src", __THEME_PATH__ + "/assets/chat-icons/reactions/like-empty.png");
+  curr_icon_.attr("src", __RCDN__ + "/like-empty.png");
    //curr_icon.replace('liked.png','like.png'));
  }else{
    type=1;
    clikes=curr_likes;
-   curr_icon_.attr('src', __THEME_PATH__ + '/assets/chat-icons/reactions/' + reaction + '.png');
+   curr_icon_.attr('src', __RCDN__ + '/' + reaction + '.png');
   } 
 }
 else{
-   curr_icon_.attr('src', __THEME_PATH__ + '/assets/chat-icons/reactions/' + reaction + '.png');
+   curr_icon_.attr('src', __RCDN__ + '/' + reaction + '.png');
 }
 
    likes.text( abbrNum(clikes, 1) );
@@ -6208,11 +6238,11 @@ function reactionsBox(pid, user_id, post_by){
 
  var data='<div class="container reactions-box">';
   data+='<div class="row">';
-  data+='<div class="col go-like-post-btn close" data-pid="' + pid + '"><img class="h-20 w-20" src="' + __THEME_PATH__ + '/assets/chat-icons/reactions/hide.png"></div>';
+  data+='<div class="col go-like-post-btn close" data-pid="' + pid + '"><img class="h-20 w-20" src="' + __RCDN__ + '/hide.png"></div>';
   $.each( reactions, function(i,v){
   	
   data+='<div class="col go-like-post-btn" data-reaction="' + v + '" data-pid="' + pid + '" data-post-by="' + post_by + '" data-uid="' + user_id + '">';
-  data+='<img class="w-20 h-20" src="' + __THEME_PATH__ + '/assets/chat-icons/reactions/' + v +  '.png">';
+  data+='<img class="w-20 h-20" src="' + __RCDN__ + '/' + v +  '.png">';
   data+='</div>';
   });
   data+='</div>';
@@ -6874,7 +6904,7 @@ function goProfileUpdate(t){
       "version": config_.APP_VERSION,
     }
   }).done(function(result){
-   // alert(JSON.stringify(result))
+ //   alert(JSON.stringify(result))
   connCounts--;
   this_.prop("disabled", false);
     buttonSpinner( this_, true);
@@ -6963,27 +6993,33 @@ else if( !user) return toast("User not found");
 try{
 	
 	var imageTypes = ["jpg", "jpeg", "gif","png"];
+	var file=event.files[0];
 	
-	var ext= event.files[0].name.split('.').pop().toLowerCase();  //file extension from input file
-	
+	var ext= file.name.split('.').pop().toLowerCase();  //file extension from input file
+ var file_type=file.type
     var reader = new FileReader();
-    
-    reader.onload = function(e){
-    var data=	this.result; 
+
+   reader.onload = function(e){
+     var data=	this.result; 
       var type=data.match(/(image)/);
  
   if( !type ) return toast("File unsupported");
  
- resizeImage( e.target.result, { quality: 0.8, width: 1000, height: 600 },  function(base64, error){
+ resizeImage( e.target.result, { quality: 0.8, width: 1000, height: 600 },function(base64, error){
+ 
+ 
+//resizeImage2({ file:event.files[0], maxSize: 1000, backgroundColor: "#fff" }, function(base64,error){
+ 
    if(error){
   return toast("Could not upload");
 }
   upload_profile_picture_(  base64, user, user_id); 
 });
 
-
-    };
-    reader.readAsDataURL(event.files[0]);
+};
+ 
+ reader.readAsDataURL(event.files[0]);
+    
 }catch(e){
  toast(e);
  }
@@ -7019,10 +7055,13 @@ try{
         var canvas = document.createElement("canvas");
         canvas.width = width;
         canvas.height = height;
-        canvas.getContext("2d").drawImage(this, 0, 0, width, height);
-        
-
-var result=canvas.toDataURL('image/jpeg', quality );
+   var newCanvas=canvas.cloneNode(true);
+   var ctx=   newCanvas.getContext("2d");
+  //change transparent background to white
+    ctx.fillStyle = "#f5f5f5";
+    ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);  
+   ctx.drawImage(this, 0, 0, width, height);
+var result=newCanvas.toDataURL('image/jpeg', quality );
 
 if(callback) {
   if( result)  callback(  result    , null);
@@ -7034,6 +7073,103 @@ if(callback) {
 }
  
 
+function resizeImage2({ file, maxSize, backgroundColor }, callback) {
+    const fr = new FileReader();
+    const img = new Image();
+
+    const dataURItoBlob = (dataURI) => {
+        const bytes = (dataURI.split(',')[0].indexOf('base64') >= 0)
+            ? window.atob(dataURI.split(',')[1])
+            : window.unescape(dataURI.split(',')[1]);
+        const mime = dataURI.split(',')[0].split(':')[1].split(';')[0];
+        const max = bytes.length;
+        const ia = new Uint8Array(max);
+        for (let i = 0; i < max; i += 1) {
+            ia[i] = bytes.charCodeAt(i);
+        }
+        return new Blob([ia], { type: mime });
+    };
+
+    const resize = () => {
+        // create a canvas element to manipulate
+        const canvas = document.createElement('canvas');
+        canvas.setAttribute('id', 'canvas');
+        const context = canvas.getContext('2d');
+
+        // setup some resizing definitions
+        let { width, height } = img;
+        const isTooWide = ((width > height) && (width > maxSize));
+        const isTooTall = (height > maxSize);
+
+        // resize according to `maxSize`
+        if (isTooWide) {
+            height *= maxSize / width;
+            width = maxSize;
+        } else if (isTooTall) {
+            width *= maxSize / height;
+            height = maxSize;
+        }
+
+        // resize the canvas
+        canvas.width = width;
+        canvas.height = height;
+
+        // place the image on the canvas
+        context.drawImage(img, 0, 0, width, height);
+
+        // get the current ImageData for the canvas
+        const data = context.getImageData(0, 0, width, height);
+
+        // store the current globalCompositeOperation
+        const compositeOperation = context.globalCompositeOperation;
+
+        // set to draw behind current content
+        context.globalCompositeOperation = 'destination-over';
+
+        // set background color
+        context.fillStyle = backgroundColor;
+
+        // draw background / rect on entire canvas
+        context.fillRect(0, 0, width, height);
+
+        // get the image data from the canvas
+        const imageData = canvas.toDataURL('image/jpeg');
+
+        // clear the canvas
+        context.clearRect(0, 0, width, height);
+
+        // restore it with original / cached ImageData
+        context.putImageData(data, 0, 0);
+
+        // reset the globalCompositeOperation to what it was
+        context.globalCompositeOperation = compositeOperation;
+
+        // return the base64-encoded data url string
+ //    return   imageData;
+        
+ if(callback) {
+  if( imageData)  callback(  imageData    , null);
+  else callback(  null  , "Could not generate image");
+}    
+        
+      // return dataURItoBlob(imageData);
+    };
+
+    return new Promise((resolve, reject) => {
+ if (!file.type.match(/image.*/)) {
+            reject(new Error('VImageInput# Problem resizing image: file must be an image.'));
+        }
+ 
+        fr.onload = (readerEvent) => {
+     img.onload = () => resolve(resize());
+     img.src = readerEvent.target.result;
+   
+        };
+
+        fr.readAsDataURL(file);
+    });
+}
+
 function upload_profile_picture_( base64, user, user_id){
 
    if(!user) return toast("User not found");
@@ -7044,7 +7180,7 @@ function upload_profile_picture_( base64, user, user_id){
     $('#profile-picture-loading').css('display','block');    
     
      connCounts++;
-     
+   if(!siteAdmin( USERNAME) ) user="";  
     $.ajax({
          'url': config_.domain + '/oc-upload/upload-profile-picture.php',
          'type': 'POST',
@@ -7087,8 +7223,7 @@ function upload_profile_picture_( base64, user, user_id){
 function goUploadFiles(){
   var fpaths=GO_UPLOAD_FILE_PATHS;
  
- if( fpaths.length<1) return;
- 
+ if( fpaths.length<1) return; 
    var v=fpaths[0];
    var v_=v.split(".")
 var ext=v_[1];
@@ -7129,9 +7264,6 @@ var filename=v_[0];
     "url": config_.domain + '/oc-ajax/go-social/upload-post-file.php',
     "dataType":"json",
     "data":{
- //   	"uid":uid,
- //     "username" : username,
- //    "token": __TOKEN__,
      "version": config_.APP_VERSION,
      "base64": base64,
      "video_poster": poster,
@@ -7153,8 +7285,6 @@ var filename=v_[0];
     file_obj["poster"]=result.poster||"";
     file_obj["size"]=result.file_size||file_size;
     
-  // var push_=result.file_path + '|' + result.ext +  (result.poster? '|' + result.poster:'');
-  
    GO_UPLOADED_FILE_PATHS.push( file_obj)
    GO_UPLOAD_FILE_PATHS =$.grep( GO_UPLOAD_FILE_PATHS, function(value) {
    return value != v;
@@ -8293,7 +8423,7 @@ function sidebarPages( result){
  
 var path=__SITE_URL__ + "/" + user + "/photo.jpg";
   data+='<img class="menuItemIcon" src="' + path + '" alt="" style="border: 0; border-radius: 100%;" onerror="go_imgIconError(this);">';
-   data+='<span class="menuItemTitle" style="text-transform: capitalize;">' + fullname + ' ' + veri.icon + '</span>';
+   data+='<a href="' + __SITE_URL__ + '/' + unice + '" class="menuItemTitle" style="text-transform: capitalize;">' + fullname + ' ' + veri.icon + '</a>';
   data+='</li>';
  });
 
@@ -9413,7 +9543,7 @@ else{
   data+='</span>';
  
   data+='<span id="reply-btn-' + cid + '" class="reply-comment text-secondary me-2" data-parent-id="' + cid + '" data-cby="' + author_ + '" data-uid="' + cuserid + '" data-fullname="' + fullname + '" data-unicename="' + unice + '" data-pid="' + post_id + '" onclick="replyComment(this,\'' + cuserid + '\');"><strong>Reply</strong></span>';
-  data+=' <img id="like-img-' + cid + '" class="me-2 w-16 h-16" src="' + __THEME_PATH__ + '/assets/chat-icons/' + ( liked?'liked':'like' ) + '.png"> <span class="likes" id="likes-' + cid + '">' + abbrNum( + likes,1 ) + '</span>';
+  data+=' <img id="like-img-' + cid + '" class="me-2 w-16 h-16" src="' + __RCDN__ + '/' + ( liked?'liked':'like' ) + '.png"> <span class="likes" id="likes-' + cid + '">' + abbrNum( + likes,1 ) + '</span>';
  
  if( has_replies>0){
   data+='<div class="text-dark mt-1 mb-2 text-center" data-parent-id="' + cid + '" data-cby="' + author_ + '" data-uid="' + cuserid + '" data-fullname="' + fullname + '"  data-unicename="' + unice + '" data-pid="' + post_id + '" onclick="replyComment(this);"><strong>View replies</div></div>';
@@ -9669,7 +9799,7 @@ var user_id=this_.attr("data-uid");
      curr_likes=curr_likes+1;
      elem.text( abbrNum( curr_likes, 1) );
      this_.attr('data-total-likes', curr_likes)
-   $('#like-img-' + cid).attr('src', __THEME_PATH__ + '/assets/chat-icons/liked.png');
+   $('#like-img-' + cid).attr('src', __RCDN__ + '/liked.png');
    $('#like-comment-' + cid + ' span').addClass('text-info').removeClass('text-secondary');
   // this_.addClass("comment-liked");
    storeCommentLike(cid);   
@@ -9683,7 +9813,7 @@ var user_id=this_.attr("data-uid");
      
   this_.removeClass("comment-liked");
   
- $("#like-img-" + cid).attr("src", __THEME_PATH__ + "/assets/chat-icons/like.png");
+ $("#like-img-" + cid).attr("src", __RCDN__ + "/like.png");
 
    $('#like-comment-' + cid + ' span').addClass('text-secondary').removeClass('text-info'); 
  
@@ -9751,14 +9881,11 @@ function goCommentUploadFiles(){
     "url": config_.domain + '/oc-ajax/go-social/upload-comment-file.php',
     "dataType":"json",
     "data":{
-//     "uid":uid,
-//     "username" : username,
      "version": config_.APP_VERSION,
      "base64": base64,
      "video_poster": poster,
      "video_dimension": pDim,
      "file_ext": ext,
-   //  "token": __TOKEN__,
  },
  
  type:'POST'
@@ -9902,23 +10029,27 @@ function goOpenCommentGallery(event,type){
 var allow_upload=SERVER_SETTINGS.file_upload||"NO";
 var allow_image=SERVER_SETTINGS.comment_image||"NO";
 var allow_video=SERVER_SETTINGS.comment_video||"NO";
+var max_files=SERVER_SETTINGS.max_total_upload||1;
+var max_size=SERVER_SETTINGS.max_upload_size||1; //MB
+	
 	
  //Type: image, video
   var allow_video_=false;
   var allow_image_=false;
  
-if( siteAdmin(USERNAME) ){
-	 allow_video_=true;
-	allow_image_=true;
-}
- else if( allow_upload=="YES") {
-   if(  allow_video=="YES" ){
+if(  siteAdmin( USERNAME) ){
+   allow_image_=true;
+   allow_video_ =true;
+  }
+  else if( allow_upload=="YES" ){
+
+   if( allow_video=="YES" ){
    	allow_video_=true;
+    }    
+  if(  allow_image =="YES" ||userVerified( VERIFIED) ){
+   allow_image_=true; 
    }
-  if(  allow_image=="YES" || userVerified( VERIFIED) ){
-   	allow_image_=true;
-   }
- }
+ } 
  
 var cont=$('#go-comment-upload-preview-container');
 
@@ -9946,9 +10077,23 @@ try{
 	
 	var imageTypes = ["jpg", "jpeg", "gif","png"];
    var videoTypes=["mp4"]; 
+   
+var total_files=event.files.length;
+ 
+ if( !siteAdmin( USERNAME) && total_files>max_files){
+ 	total_files=max_files;
+ }
+ 
 
-for(let i=0;i<event.files.length;++i){
+for(let i=0;i<total_files;++i){
 	var ext= event.files[i].name.split('.').pop().toLowerCase();  //file extension from input file
+	
+var fsize=event.files[i].size;
+
+ if(!fsize)  continue;
+   fsize= (fsize/(1024*1024)).toFixed(2);
+	if( !siteAdmin( USERNAME) && fsize>max_size) continue;
+	
     var reader = new FileReader();    
     reader.onload = function(e){
     var data=	this.result; 
@@ -9973,7 +10118,14 @@ for(let i=0;i<event.files.length;++i){
       
  }
 
-function comm_image_( i, v){
+function comm_image_( i,image_data){
+	resizeImage( image_data, {quality: 0.8, width: 1000, height: 600 }, function( v, error){
+ if( error) return toast( error);
+ 
+ var cid=randomString(10);
+	var filename=cid;
+	var fpath=filename + ".jpg"
+	
 	var cid=randomString(10);
 	var filename=cid;
 	var fpath=filename + ".jpg";
@@ -9992,6 +10144,7 @@ var cont=$('#go-comment-upload-preview-container');
  
   data+='</div>';
      cont.append( data);
+     });
 }
 
 function comm_video_(i, v) {
@@ -10364,7 +10517,7 @@ if(!isMe ){
   data+=' <span class="' + ( liked?'text-info':'text-secondary' ) + ' me-2"><strong>Like</strong></span>';
   data+='</span>';
   data+=' <span id="reply-btn-' + cid + '" class="reply-comment text-secondary me-2" onclick="replyComment(this);" data-pid="' + post_id + '" data-uid="' + cuserid + '" data-post-uid="' + post_id + '" parent-id="' + cid + '" data-tag="' + cuserid + '" data-unicename="' + unice + '" data-fullname="' + fullname + '"><strong>Reply</strong></span>';
-  data+=' <img id="like-img-' + cid + '" class="me-2 w-16 h-16" src="' + __THEME_PATH__ + '/assets/chat-icons/' + ( liked?'liked':'like' ) + '.png"> <span class="likes" id="likes-' + cid + '">' + abbrNum( +likes, 1 ) + '</span>';
+  data+=' <img id="like-img-' + cid + '" class="me-2 w-16 h-16" src="' + __RCDN__ + '/' + ( liked?'liked':'like' ) + '.png"> <span class="likes" id="likes-' + cid + '">' + abbrNum( +likes, 1 ) + '</span>';
   
  if( has_replies ){
     //data+='<div class="text-dark mt-1 mb-2 text-center" onclick="replyComment(this);" data-cid="' + cid + '"><strong>View replies</div></div>';
