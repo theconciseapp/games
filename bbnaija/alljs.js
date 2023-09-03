@@ -1,5 +1,5 @@
 'use strict';
-//Ver: 1.0
+//Ver: 12.0
 function yall (options) {
   options = options || {};
 
