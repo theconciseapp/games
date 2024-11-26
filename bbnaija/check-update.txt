@@ -6,7 +6,7 @@
   [
     {"platform":"amazon"
 ,"url":"http://www.amazon.com/gp/mas/dl/android?p=concise.school.attendance.ng","label":"Amazon Appstore",
-"icon":"file:///android_asset/images/button_icons/amazon.png"},
+"icon":"file:///assets/images/button_icons/amazon.png"},
 {"platform":"link",
 "url":"http://www.bigbiblenaija.com.ng/bbngame.apk",
 "label":"Direct download",
